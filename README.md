@@ -7,7 +7,7 @@
   ██║       ╚██╔╝  ██╔══██╗██╔══╝  ██╔══██╗   ██║   ██╔══██╗██╔══██║██║╚██╗██║╚════██║
   ╚██████╗   ██║   ██████╔╝███████╗██║  ██║   ██║   ██║  ██║██║  ██║██║ ╚████║███████║
    ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝
-                  N E O N  ·  V I D E O  ·  O P T I M I Z E R
+       ░▒▓  N E O N  ·  V I D E O  ·  O P T I M I Z E R  ▓▒░  »  B Y   R O B E R T O G E E K
 ```
 
 > Neon-terminal batch transcoder. Drag a folder, get web-ready videos in place.
