@@ -108,7 +108,8 @@ def print_banner() -> None:
         color = GRADIENT[i % len(GRADIENT)]
         print(f"{color}{BOLD}{line}{RESET}")
     sub = "  ░▒▓  N E O N  ·  V I D E O  ·  O P T I M I Z E R  ▓▒░"
-    print(f"  {CYAN}{DIM}{sub}{RESET}")
+    sig = "  »  B Y   R O B E R T O G E E K"
+    print(f"  {CYAN}{DIM}{sub}{RESET}{HOTPINK}{sig}{RESET}")
     print(f"  {PURPLE}{'─' * 86}{RESET}\n")
 
 
