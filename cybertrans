@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# CYBERTRANS launcher
+exec python3 "$(dirname "$0")/cybertrans.py" "$@"
