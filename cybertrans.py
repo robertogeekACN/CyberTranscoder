@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CYBERTRANS — neon terminal video transcoder.
+"""CYBERTRANSCODING — neon terminal video transcoder.
 
 Configurable codec (H.264/H.265), resolution cap (FHD/4K), and audio.
 Drop a folder or files, originals get atomically overwritten with
@@ -27,24 +27,23 @@ HIDE_CURSOR, SHOW_CURSOR = "\033[?25l", "\033[?25h"
 CLEAR_LINE = "\033[2K\r"
 CLEAR_TO_END = "\033[J"
 
-HOTPINK = c(199)
-PINK = c(201)
+HOTPINK = c(198)
+CORAL   = c(203)
+PINK    = c(201)
 MAGENTA = c(165)
-PURPLE = c(141)
-DARK = c(54)
-SKY = c(45)
-CYAN = c(51)
-AQUA = c(87)
-LIME = c(118)
-GREEN = c(46)
-YELLOW = c(226)
-GOLD = c(214)
-ORANGE = c(208)
-RED = c(196)
-WHITE = c(231)
-GREY = c(240)
-
-GRADIENT = [HOTPINK, PINK, MAGENTA, PURPLE, SKY, CYAN]
+PURPLE  = c(93)   # deep violet — safe on both light and dark backgrounds
+DARK    = c(54)
+SKY     = c(57)   # indigo
+CYAN    = c(27)   # electric blue — replaces light cyan (invisible on white)
+AQUA    = c(33)   # royal blue — replaces light aqua
+LIME    = c(118)
+GREEN   = c(46)
+YELLOW  = c(226)
+GOLD    = c(214)
+ORANGE  = c(208)
+RED     = c(196)
+WHITE   = c(231)
+GREY    = c(240)
 
 VIDEO_EXTS = {".mp4", ".mov", ".m4v", ".mkv", ".webm", ".avi"}
 
@@ -55,6 +54,22 @@ BANNER = r"""
   ██║       ╚██╔╝  ██╔══██╗██╔══╝  ██╔══██╗   ██║   ██╔══██╗██╔══██║██║╚██╗██║╚════██║
   ╚██████╗   ██║   ██████╔╝███████╗██║  ██║   ██║   ██║  ██║██║  ██║██║ ╚████║███████║
    ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝"""
+
+BANNER_CYBER = r"""
+   ██████╗██╗   ██╗██████╗ ███████╗██████╗
+  ██╔════╝╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗
+  ██║      ╚████╔╝ ██████╔╝█████╗  ██████╔╝
+  ██║       ╚██╔╝  ██╔══██╗██╔══╝  ██╔══██╗
+  ╚██████╗   ██║   ██████╔╝███████╗██║  ██║
+   ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝"""
+
+BANNER_TRANSCODING = r"""
+  ████████╗██████╗  █████╗ ███╗   ██╗███████╗ ██████╗ ██████╗ ██████╗ ██╗███╗   ██╗ ██████╗
+  ╚══██╔══╝██╔══██╗██╔══██╗████╗  ██║██╔════╝██╔════╝██╔═══██╗██╔══██╗██║████╗  ██║██╔════╝
+     ██║   ██████╔╝███████║██╔██╗ ██║███████╗██║     ██║   ██║██║  ██║██║██╔██╗ ██║██║  ███╗
+     ██║   ██╔══██╗██╔══██║██║╚██╗██║╚════██║██║     ██║   ██║██║  ██║██║██║╚██╗██║██║   ██║
+     ██║   ██║  ██║██║  ██║██║ ╚████║███████║╚██████╗╚██████╔╝██████╔╝██║██║ ╚████║╚██████╔╝
+     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚═════╝ ╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝"""
 
 SPINNER = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
 
@@ -103,14 +118,17 @@ class RunState:
 
 
 def print_banner() -> None:
+    warm = [c(203), c(199), c(201), c(165), c(129), c(93)]
+    cool = [c(27),  c(26),  c(57),  c(93),  c(55),  c(54)]
     print()
-    for i, line in enumerate(BANNER.strip("\n").splitlines()):
-        color = GRADIENT[i % len(GRADIENT)]
-        print(f"{color}{BOLD}{line}{RESET}")
-    sub = "  ░▒▓  N E O N  ·  V I D E O  ·  O P T I M I Z E R  ▓▒░"
-    sig = "  »  B Y   R O B E R T O G E E K"
-    print(f"  {CYAN}{DIM}{sub}{RESET}{HOTPINK}{sig}{RESET}")
-    print(f"  {PURPLE}{'─' * 86}{RESET}\n")
+    for i, line in enumerate(BANNER_CYBER.strip("\n").splitlines()):
+        print(f"{warm[i]}{BOLD}{line}{RESET}")
+    for i, line in enumerate(BANNER_TRANSCODING.strip("\n").splitlines()):
+        print(f"{cool[i]}{BOLD}{line}{RESET}")
+    sub = "  ◈  N E O N  ·  V I D E O  ·  O P T I M I Z E R  ◈"
+    sig = "   »»  B Y   R O B E R T O G E E K"
+    print(f"\n  {ORANGE}{BOLD}{sub}{RESET}{HOTPINK}{sig}{RESET}")
+    print(f"  {PURPLE}{'─' * 96}{RESET}\n")
 
 
 def human(n: float) -> str:
