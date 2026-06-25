@@ -57,13 +57,21 @@ make_workflow() {
   # in Terminal.app — bash never blocks, Automator sees exit 0 immediately.
   local shell_cmd
   shell_cmd=$(cat <<SHELL
-_ct=\$(mktemp /tmp/cyber_XXXXXX.command)
+_base=\$(mktemp /tmp/cyber_XXXXXX)
+_ct="\${_base}.command"
+mv "\$_base" "\$_ct"
 chmod +x "\$_ct"
 {
   echo '#!/bin/bash'
-  for _f in "\$@"; do
-    printf '${CYBERTRANS} ${flags} %q\\n' "\$_f"
-  done
+  if [[ \$# -gt 0 ]]; then
+    for _f in "\$@"; do
+      printf '${CYBERTRANS} ${flags} %q\\n' "\$_f"
+    done
+  else
+    while IFS= read -r _f; do
+      printf '${CYBERTRANS} ${flags} %q\\n' "\$_f"
+    done
+  fi
   echo 'echo'
   echo 'read -rn1 -p "  done — press any key to close"'
   echo 'rm -f "\$0"'
