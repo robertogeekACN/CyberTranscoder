@@ -50,13 +50,25 @@ make_workflow() {
 
   mkdir -p "$contents"
 
-  # Build the shell command that runs inside the workflow
-  # Paths arrive as arguments via Automator's "files/folders" input
+  # Build the shell command that runs inside the workflow.
+  # Automator has a minimal PATH and no TTY, so we can't call cybertrans directly
+  # (Python would try osascript from inside Automator's sandbox and fail).
+  # Instead: create a temp .command file with the paths baked in, then open it
+  # in Terminal.app — bash never blocks, Automator sees exit 0 immediately.
   local shell_cmd
   shell_cmd=$(cat <<SHELL
-for f in "\$@"; do
-  ${CYBERTRANS} ${flags} "\$f"
-done
+_ct=\$(mktemp /tmp/cyber_XXXXXX.command)
+chmod +x "\$_ct"
+{
+  echo '#!/bin/bash'
+  for _f in "\$@"; do
+    printf '${CYBERTRANS} ${flags} %q\\n' "\$_f"
+  done
+  echo 'echo'
+  echo 'read -rn1 -p "  done — press any key to close"'
+  echo 'rm -f "\$0"'
+} > "\$_ct"
+open -a Terminal "\$_ct"
 SHELL
 )
 
