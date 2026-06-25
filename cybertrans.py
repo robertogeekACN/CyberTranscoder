@@ -73,6 +73,8 @@ BANNER_TRANSCODING = r"""
 
 SPINNER = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
 
+PRESET_FLAGS = {"--codec", "--res", "--audio"}
+
 
 @dataclass(frozen=True)
 class Settings:
@@ -175,6 +177,22 @@ def parse_paths(raw: str) -> list[Path]:
             seen.add(key)
             out.append(pp)
     return out
+
+
+def _path_args() -> list[str]:
+    """Return sys.argv[1:] with all preset flags (--codec/--res/--audio) and their values removed."""
+    args = sys.argv[1:]
+    result: list[str] = []
+    skip = False
+    for a in args:
+        if skip:
+            skip = False
+            continue
+        if a in PRESET_FLAGS:
+            skip = True
+        else:
+            result.append(a)
+    return result
 
 
 def collect_videos(paths: list[Path]) -> tuple[list[Path], str]:
@@ -337,8 +355,9 @@ def prompt_settings() -> Settings:
 
 
 def get_inputs() -> list[Path]:
-    if len(sys.argv) > 1:
-        return parse_paths(" ".join(sys.argv[1:]))
+    path_args = _path_args()
+    if path_args:
+        return parse_paths(" ".join(path_args))
     print(
         f"  {HOTPINK}▸{RESET} {WHITE}drop folder(s) or file(s) here & press "
         f"{BOLD}ENTER{RESET}{WHITE}:{RESET}"
@@ -651,7 +670,54 @@ def ensure_ffmpeg() -> bool:
     return True
 
 
+def _parse_preset_flags() -> "Settings | None":
+    """Return a Settings if --codec, --res, and --audio are all present in argv."""
+    args = sys.argv[1:]
+    def _flag(name: str) -> str | None:
+        try:
+            return args[args.index(name) + 1]
+        except (ValueError, IndexError):
+            return None
+    codec = _flag("--codec")
+    res   = _flag("--res")
+    audio = _flag("--audio")
+    if codec in ("h264", "h265") and res in ("fhd", "4k") and audio in ("keep", "strip"):
+        return Settings(codec=codec, max_res=res, keep_audio=(audio == "keep"))
+    return None
+
+
+def _relaunch_in_terminal() -> None:
+    """Open Terminal.app and re-run this exact command there (for Automator/no-TTY contexts)."""
+    script_path = f"/tmp/cybertrans_launch_{os.getpid()}.sh"
+    cmd = " ".join(shlex.quote(a) for a in [sys.executable] + sys.argv)
+    with open(script_path, "w") as fh:
+        fh.write(
+            f"#!/bin/bash\n"
+            f"{cmd}\n"
+            f"printf '\\n\\033[2m  ▶ done — press any key to close\\033[0m'\n"
+            f"read -rn1\n"
+            f"rm -f \"$0\"\n"
+        )
+    os.chmod(script_path, 0o755)
+    subprocess.run(
+        ["osascript", "-e",
+         f'tell application "Terminal" to do script "{script_path}"'],
+        check=False,
+    )
+    subprocess.run(
+        ["osascript", "-e", 'tell application "Terminal" to activate'],
+        check=False,
+    )
+
+
 def main() -> int:
+    preset = _parse_preset_flags()
+
+    # Called from Automator/Finder with no TTY → relaunch inside Terminal.app
+    if preset and not sys.stdin.isatty():
+        _relaunch_in_terminal()
+        return 0
+
     sys.stdout.write(HIDE_CURSOR)
     sys.stdout.flush()
     try:
@@ -659,7 +725,7 @@ def main() -> int:
             return 1
 
         print_banner()
-        settings = prompt_settings()
+        settings = preset if preset else prompt_settings()
 
         # show effective settings
         print(f"  {PURPLE}╭─[ {WHITE}LOCKED{PURPLE} ]{'─' * 70}{RESET}")
